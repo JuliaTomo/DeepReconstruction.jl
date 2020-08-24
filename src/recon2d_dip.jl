@@ -3,7 +3,7 @@ using CUDA.CUSPARSE
 using Flux
 using SparseArrays
 
-function fp_dip(x, A::CuArray{Float32,2})
+function fp_dip(x, A)
     A * x
 end
 

@@ -1,4 +1,4 @@
-Welcome to JuliaTomo/DeepImagePrior.jl
+# Welcome to JuliaTomo/DeepImagePrior.jl
 
 The code reconstructs 2D images from tomographic measurements based on Deep Image Prior [1]. Gadelha [2] apply DIP to the tomographic reconstruction task. This code implements [2] with some differences. We use a sparse array as a forward projection operator and use the automatic differentiation from Flux. This makes it possible to use more flexible geometry. ([2] only supports the limited geometry.) For the forward operator, we need another package `TomoForward` (Check the installation below).
 
@@ -26,9 +26,11 @@ Please see codes in `examples` folder.
 ## Demo
 
 ![](media/errs.png)
+
 Reconstruction error per iteration
 
 ![](media/recon_best.png)
+
 Final reconstruction result
 
 ## References

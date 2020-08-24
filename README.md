@@ -23,6 +23,14 @@ Please see codes in `examples` folder.
 
 - Check the paper: M. Z. Darestani and R. Heckel, “Can Un-trained Neural Networks Compete with Trained Neural Networks at Image Reconstruction?,” arXiv:2007.02471 http://arxiv.org/abs/2007.02471.
 
+## Demo
+
+![](media/errs.png)
+Reconstruction error per iteration
+
+![](media/recon_best.png)
+Final reconstruction result
+
 ## References
 
 - [1] Ulyanov, D., Vedaldi, A., Lempitsky, V., 2018. Deep image prior, in: CVPR.

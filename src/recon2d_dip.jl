@@ -2,6 +2,7 @@ using CUDA
 using CUDA.CUSPARSE
 using Flux
 using SparseArrays
+using FileIO
 
 function fp_dip(x, A)
     A * x
@@ -46,16 +47,20 @@ Reconstruct 2D image based on Deep Image Prior.
 - p_data : sinogram data
 - A (sparse matrix Float32 in cpu) : forward projection opeartor
 - H, W : image size to reconstruct
-- verbose : 2 if you want to save the best result during the iteration instead of early stopping. There should be a global variable `img_gt` for the ground truth image. Moreover, if there is global variable `dresult`, we save the image.
+- verbose : 1 if you want to save the best result during the iteration instead of early stopping. There should be a global variable `img_gt` for the ground truth image. Moreover, if there is global variable `dresult`, we save the image.
 """
-function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int, W::Int, niter=2000, ichannel=3, verbose=2)
+function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int, W::Int, niter=2000, ichannel=3; img_gt=nothing, dresult=nothing)
 
     # if there is no img_gt, we don't compare it.
-    ~(@isdefined img_gt) && (verbose = 1)
+    if ~isnothing(img_gt)
+        errs = zeros(Float32, niter)
+        err_best = 100000.f0
+    end
 
     ps = Flux.params(net)
     p_data = cu(vec(p_data))
 
+    # if the image is small enough, we can use CUDA sparse array
     if H*W <= 512*512
         A_ = CuSparseMatrixCSR( A )
     else
@@ -63,10 +68,8 @@ function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int
     end
 
     z = CUDA.randn(Float32, H, W, ichannel, 1)
-    recon = zeros(Float32, H, W)
+    img_best = zeros(Float32, H, W)
     
-    # let err_prev
-    err_best = 100000.f0
 
     for i=1:niter
         loss_, back = Zygote.pullback( () -> loss(net, z, p_data, A_), ps )
@@ -77,20 +80,28 @@ function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int
             @show i, loss_
         end
 
-        if verbose >= 2 && i > 1000
+        if ~isnothing(img_gt)
             z_out = net(z)
             img = cpu(dropdims(z_out, dims=(3,4)))
         
-            err = sum(abs.(img_gt - est)) / sum(abs.(gt))
-            if err_best > err
-                copy!(recon, img)
-                
-                if (@isdefined dresult)
-                    save("$dresult/img_dip_$i.png", recon ./ maximum(recon))
+            errs[i] = sum(abs.(img_gt - img)) / sum(abs.(img_gt))
+
+            if i > 1000 && err_best > errs[i]
+                copy!(img_best, img)
+                err_best = errs[i]
+
+                if ~isnothing(dresult)
+                    save("$dresult/img_dip_$i.png", img_best ./ maximum(img_best))
                 end
-                err_best = err
             end
         end
     end
-    return recon
+    z_out = net(z)
+    img_final = cpu(dropdims(z_out, dims=(3,4)))
+    
+    if isnothing(img_gt)
+        return img_final
+    else
+        return img_final, img_best, errs
+    end
 end

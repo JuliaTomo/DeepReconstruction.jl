@@ -22,43 +22,6 @@ function upsample_nearest(a)
 end
 
 
-# from Flux codes
-"""
-    BilinearUpsample2d(factors::Tuple{Integer,Integer})
-
-Create an upsampling layer that uses bilinear interpolation to upsample the 1st and 2nd dimension of
-a 4-dimensional input array . The size of the output array will be equal to
-`(factors[1]*S1, factors[2]*S2, S3, S4)`, where `S1,S2,S3,S4 = size(input_array)`.
-
-# Examples
-```jldoctest; setup = :(using Flux: BilinearUpsample2d; using Random; Random.seed!(0))
-julia> b = Flux.BilinearUpsample2d((2, 2))
-BilinearUpsample2d(2, 2)
-julia> b(rand(2, 2, 1, 1))
-4×4×1×1 Array{Float64,4}:
-[:, :, 1, 1] =
- 0.823648  0.658877  0.329336  0.164566
- 0.845325  0.675933  0.337149  0.167757
- 0.888679  0.710044  0.352773  0.174138
- 0.910357  0.7271    0.360586  0.177329```
-"""
-
-struct BilinearUpsample2d{T<:Integer}
-    factors::Tuple{T,T}
-end
-
-BilinearUpsample2d(factor::F) where F<:Integer = BilinearUpsample2d((factor, factor))
-
-Flux.@functor BilinearUpsample2d
-
-function (c::T where T<:BilinearUpsample2d)(x::AbstractArray)
-    bilinear_upsample2d(x, c.factors)
-end
-
-@adjoint function (c::T where T<:BilinearUpsample2d)(x::AbstractArray)
-    (c::T where T<:BilinearUpsample2d)(x), c̄ -> (nothing, bilinear_upsample_adjoint(c̄, c.factors))
-end
-
 """
     `construct_xq(n::T, m::T) where T<:Integer`
 

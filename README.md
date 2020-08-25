@@ -25,11 +25,17 @@ Please see codes in `examples` folder.
 
 ## Demo
 
-![](media/errs.png)
+Loss per iteration
+
+![](media/losses.png)
 
 Reconstruction error per iteration
 
-![](media/recon_best.png)
+![](media/errs.png)
+
+Best reconstruction result (from clean and noisy)
+
+![](media/recon_best.png) ![](media/recon_best_noisy.png)
 
 Final reconstruction result
 

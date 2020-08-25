@@ -19,10 +19,10 @@ Zygote.@adjoint function fp_dip(x, A)
     return fp_dip(x, A), function(dldp)
         # dldp : [m]
         if typeof(A) != SparseMatrixCSC{Float32,Int64}
-            out = A' * vec(dldp)
+            out = A' * dldp
         else
             # if A is in cpu
-            out = cu( A' * vec(cpu(dldp)) )
+            out = cu( A' * cpu(dldp) )
         end
 
         return (out, nothing)
@@ -47,7 +47,7 @@ Reconstruct 2D image based on Deep Image Prior.
 - p_data : sinogram data
 - A (sparse matrix Float32 in cpu) : forward projection opeartor
 - H, W : image size to reconstruct
-- verbose : 1 if you want to save the best result during the iteration instead of early stopping. There should be a global variable `img_gt` for the ground truth image. Moreover, if there is global variable `dresult`, we save the image.
+- img_gt : if ground truth is given, we check the error per 50 iterations after 1000 iteration.
 """
 function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int, W::Int, niter=2000, ichannel=3; img_gt=nothing, dresult=nothing)
 
@@ -56,6 +56,8 @@ function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int
         errs = zeros(Float32, niter)
         err_best = 100000.f0
     end
+
+    losses = zeros(Float32, niter)
 
     ps = Flux.params(net)
     p_data = cu(vec(p_data))
@@ -75,7 +77,8 @@ function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int
         loss_, back = Zygote.pullback( () -> loss(net, z, p_data, A_), ps )
         gs = back(1.0f0)
         Flux.update!(opt, ps, gs)
-        
+
+        losses[i] = loss_
         if i % 50 == 0
             @show i, loss_
         end
@@ -86,7 +89,7 @@ function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int
         
             errs[i] = sum(abs.(img_gt - img)) / sum(abs.(img_gt))
 
-            if i > 1000 && err_best > errs[i]
+            if i > 1000 && i % 50 == 0 && err_best > errs[i]
                 copy!(img_best, img)
                 err_best = errs[i]
 
@@ -100,8 +103,8 @@ function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int
     img_final = cpu(dropdims(z_out, dims=(3,4)))
     
     if isnothing(img_gt)
-        return img_final
+        return img_final, losses
     else
-        return img_final, img_best, errs
+        return img_final, losses, img_best, errs
     end
 end

@@ -1,6 +1,6 @@
 # Welcome to JuliaTomo/DeepImagePrior.jl
 
-The code reconstructs 2D images from tomographic measurements based on Deep Image Prior [1]. Gadelha [2] apply DIP to the tomographic reconstruction task. This code implements [2] with some differences. We use a sparse array as a forward projection operator and use the automatic differentiation from Flux. This makes it possible to use more flexible geometry. ([2] only supports the limited geometry.) For the forward operator, we need another package `TomoForward` (Check the installation below).
+The code reconstructs a 2D image from tomographic measurements based on Deep Image Prior [1]. Gadelha et al. [2] apply DIP to the tomographic reconstruction task. This code implements [2] with some differences. We use a sparse array as a forward projection operator and use the automatic differentiation from Flux. This makes it possible to use more flexible geometry, whereas [2] only supports the limited geometry. For the forward operator, we need another package `TomoForward` (Check the installation below).
 
 For the UNet architecture, I modify the code from [3]. Many thanks to the author of [3]! For the bilinear upsampling layer, I use the codes from the branch: https://github.com/FluxML/Flux.jl/pull/1180 . If it is merged, it will be removed.
 

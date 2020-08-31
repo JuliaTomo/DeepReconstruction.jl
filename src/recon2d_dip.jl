@@ -72,7 +72,6 @@ function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int
     z = CUDA.randn(Float32, H, W, ichannel, 1)
     img_best = zeros(Float32, H, W)
     
-
     for i=1:niter
         loss_, back = Zygote.pullback( () -> loss(net, z, p_data, A_), ps )
         gs = back(1.0f0)
@@ -86,10 +85,10 @@ function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int
         if ~isnothing(img_gt)
             z_out = net(z)
             img = cpu(dropdims(z_out, dims=(3,4)))
-        
+
             errs[i] = sum(abs.(img_gt - img)) / sum(abs.(img_gt))
 
-            if (i == 1) || (i % 100 == 0 && err_best > errs[i])
+            if i % 50 == 0 && err_best > errs[i]
                 @show "reconstruction error with gt: ", errs[i]
                 copy!(img_best, img)
                 err_best = errs[i]
@@ -100,6 +99,7 @@ function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int
             end
         end
     end
+
     z_out = net(z)
     img_final = cpu(dropdims(z_out, dims=(3,4)))
     

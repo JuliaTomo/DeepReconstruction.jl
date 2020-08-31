@@ -4,7 +4,8 @@ using FileIO
 using Flux
 using ImageIO
 
-img = Float32.(load("shepp256.png"))
+# img = Float32.(load("shepp256.png"))
+img = Float32.(load("2foam30.png"))
 img_gt = copy(img)
 
 H, W = size(img)
@@ -15,13 +16,13 @@ proj_geom = ProjGeom(1.0, detcount, LinRange(0,pi,nangles+1)[1:nangles])
 A = fp_op_parallel2d_line(proj_geom, size(img, 1), size(img, 2))
 p_data = Float32.(A * vec(img))
 # p_data = vec(reshape(p_data, nangles, :)') # detector count should be the first axis
-lr = 0.01f0
+lr = 0.0001f0
 
 net = UNet(3; use_two_skip=true) # 128, 5
 opt = ADAM(lr) # Gadelha
 dresult = "../result/"
 mkpath(dresult)
-u_out, losses, u_best, errs = recon2d_dip(net, opt, p_data, Float32.(A), H, W; img_gt=img_gt)
+u_out, losses, u_best, errs = recon2d_dip(net, opt, p_data, Float32.(A), H, W; img_gt=img_gt, save_img=true)
 
 using Plots
 # plot(errs)

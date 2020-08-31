@@ -49,7 +49,7 @@ Reconstruct 2D image based on Deep Image Prior.
 - H, W : image size to reconstruct
 - img_gt : if ground truth is given, we check the error
 """
-function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int, W::Int, niter=2000, ichannel=3; img_gt=nothing, dresult=nothing)
+function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int, W::Int, niter=2000, ichannel=3; img_gt=nothing, dresult=nothing, ncheck_gt=50)
 
     # if there is no img_gt, we don't compare it.
     if ~isnothing(img_gt)
@@ -88,7 +88,7 @@ function recon2d_dip(net, opt, p_data, A::SparseMatrixCSC{Float32,Int64}, H::Int
 
             errs[i] = sum(abs.(img_gt - img)) / sum(abs.(img_gt))
 
-            if i % 50 == 0 && err_best > errs[i]
+            if i % ncheck_gt == 0 && err_best > errs[i]
                 @show "reconstruction error with gt: ", errs[i]
                 copy!(img_best, img)
                 err_best = errs[i]

@@ -1,4 +1,4 @@
-name = "DeepImagePrior"
+name = "DeepReconstruction"
 uuid = "ebac1d79-8bde-464d-aae5-ddc39a261ad0"
 authors = ["Jakeoung Koo"]
 version = "0.1.0"

@@ -1,4 +1,4 @@
-module DeepImagePrior
+module DeepReconstruction
 
 include("upsample.jl")
 include("UNet.jl")

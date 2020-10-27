@@ -1,5 +1,5 @@
 using TomoForward
-using DeepImagePrior
+using DeepReconstruction
 using FileIO
 using Flux
 using ImageIO
